@@ -7,6 +7,7 @@ int btnState = LOW;
 int lastBtnState = LOW;
 char* currentStatus = "Away";
 char* lastStatus = "Away";
+char* APIstatus = "";
 bool local_upstream = false; // if the traffic light status (local) is more recently updated than the Slack API, local_upstream = true
 
 int LEDstatus=OFF;
@@ -21,7 +22,7 @@ char* emoji1 = ":large_green_circle:";
 char* message2 = "Busy";
 char* emoji2 = ":large_yellow_circle:";
 
-char* message3 = "Do not distub";
+char* message3 = "Do not disturb";
 char* emoji3 = ":octagonal_sign:";
 
 

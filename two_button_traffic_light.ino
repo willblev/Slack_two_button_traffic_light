@@ -71,11 +71,10 @@ void setup() {
           // Allocate a buffer to store contents of the file.
           std::unique_ptr<char[]> buf(new char[size]);
 
-
           configFile.readBytes(buf.get(), size);
-          DynamicJsonDocument doc(1024);
-          DeserializationError error = deserializeJson(doc, buf.get());
-          serializeJson(doc, Serial);
+          DynamicJsonDocument config_json_doc(1024);
+          DeserializationError error = deserializeJson(config_json_doc, buf.get());
+          serializeJson(config_json_doc, Serial);
           if (error) {
             DEBUG_SERIAL.println("\nparsed json");
           } else {
@@ -110,17 +109,16 @@ void setup() {
     if (shouldSaveConfig) {
       Serial.println("Saving config");
       
-      DynamicJsonDocument doc(1024);
-      // JsonObject& json = jsonBuffer.createObject();
-      doc["slackOAuthToken"] = slackOAuthToken;
+      DynamicJsonDocument config_json_doc(1024);
+      config_json_doc["slackOAuthToken"] = slackOAuthToken;
     
       File configFile = SPIFFS.open("/config.json", "w");
       if (!configFile) {
         Serial.println("Failed to open config file for writing");
       }
   
-      serializeJson(doc, Serial);
-      serializeJson(doc, configFile);
+      serializeJson(config_json_doc, Serial);
+      serializeJson(config_json_doc, configFile);
       configFile.close();
       //end save
     }
@@ -139,9 +137,7 @@ void setup() {
 
 
 void loop() {
-       
-  //local_upstream =false; // assume Slack API is most up-to-date unless button is pressed
-        
+  // FIRST we detect button presses, and if they are detected, we set local_upstream to true        
   if(button1.pressDetected()){
        btnPressCount++; // Count this press
        DEBUG_SERIAL.println("button1 pressed");  
@@ -158,27 +154,28 @@ void loop() {
        requestDueTime = millis() + 3000; // reset the next time to send status to Slack for 3 seconds from last button press detection 
     } 
  
-  btnPressCount = btnPressCount % 4; // Keep count in the range 0 to 3 
+  btnPressCount = btnPressCount % 4; // Keep count in the range 0 to 3 since we only have 4 states
 
-    if (millis() > requestDueTime){
-        if(local_upstream){updateSlackAPI();}
-        delay(100);
-        checkSlackStatus();
+    if (millis() > requestDueTime){  //once enough time has elapsed since the last request, we can send
+        if(local_upstream){
+          updateSlackAPI();  // if the change happened locally, we send the new status to Slack
+        } else {     
+          checkSlackStatus();  // if no change was detected locally, see what current status on Slack is
+          }
         requestDueTime = millis() + delayBetweenRequests;
     }
 
-    updateLEDs();
+    if(LEDstatus != btnPressCount){updateLEDs();} // update the LEDs if the status has changed
 }
 
 
 void updateLEDs() {
-  //DEBUG_SERIAL.println("Updating LEDs");
   
   switch(btnPressCount){
     case 0:   // off 
     {
 
-       //DEBUG_SERIAL.println(message0);
+       DEBUG_SERIAL.println("Changing LEDs to off");
        LEDstatus=OFF;
        currentStatus=message0;
        digitalWrite(GREEN_LED_PIN, LOW);
@@ -190,7 +187,7 @@ void updateLEDs() {
     
     case 1:   // green 
     {
-       //DEBUG_SERIAL.println(message1);
+       DEBUG_SERIAL.println("Changing LEDs to green.");
        LEDstatus=GREEN;
        currentStatus=message1;
        digitalWrite(GREEN_LED_PIN, HIGH);
@@ -202,7 +199,7 @@ void updateLEDs() {
     
     case 2:   // yellow 
     {
-       //DEBUG_SERIAL.println(message2);
+       DEBUG_SERIAL.println("Changing LEDs to yellow.");
        LEDstatus=YELLOW;
        currentStatus=message2;
        digitalWrite(GREEN_LED_PIN, LOW);
@@ -214,7 +211,7 @@ void updateLEDs() {
     
     case 3:   // red
     {
-       //DEBUG_SERIAL.println(message3);
+       DEBUG_SERIAL.println("Changing LEDs to red.");
        LEDstatus=RED;
        currentStatus=message3;
        digitalWrite(GREEN_LED_PIN, LOW);
@@ -228,9 +225,11 @@ void updateLEDs() {
 
 void updateSlackAPI() { // if a change has been registered locally, but hasn't been sent to slack yet
    
+   DEBUG_SERIAL.println("Setting a new status on Slack.");
+   
    SlackProfile profile;
 
-   switch(LEDstatus){
+   switch(LEDstatus){  // depending on what color the LEDs currently are, change the Slack status to... 
     case 0: // off
     {
       profile = slack.setCustomStatus(message0, emoji0);
@@ -264,51 +263,55 @@ void updateSlackAPI() { // if a change has been registered locally, but hasn't b
     }
   } 
   
-    
   local_upstream=false; // now that we've sent the new status to Slack, local and remote are equal again    
 }        
 
 
-void checkSlackStatus() {
-  DEBUG_SERIAL.println("sending GET request to Slack API");
+void checkSlackStatus() { // get the current remote status info from Slack
   
+  DEBUG_SERIAL.println("Getting current status info from Slack API.");
+ 
   SlackProfile profile;
-  delay(20);
   slack.getCurrentStatus();
-  delay(20);
-  char* APIstatus = profile.statusText;
-  displayProfile(profile);
-  Serial.println(APIstatus);
+  APIstatus = profile.statusText;
 
-  if (APIstatus==currentStatus){
+  if (APIstatus==currentStatus){ // if the current status locally is the same as on Slack, no action needed.
     
     DEBUG_SERIAL.println("Status unchanged since last time; doing nothing.");
-  } else { // If a change has been registered, but it happened on Slack first
-
-    local_upstream=false;
+  
+  } else { // If a status change has been detected on Slack, update the traffic light
+    DEBUG_SERIAL.println("STATUS CHANGE DETECTED ON SLACK");
 
     if(APIstatus==message0){
+      DEBUG_SERIAL.println("Status changed to off");
       btnPressCount = OFF;
       
     } else if(APIstatus==message1) { 
+      DEBUG_SERIAL.println("Status changed to green");
       btnPressCount = GREEN;
       
     } else if(APIstatus==message2) {
+      DEBUG_SERIAL.println("Status changed to yellow");
       btnPressCount = YELLOW;
       
     } else if(APIstatus==message3) {
+      DEBUG_SERIAL.println("Status changed to red");
       btnPressCount = RED;
       
     } else {
-      Serial.println("Slack status does not match any known state; turning off LEDs.");
+      DEBUG_SERIAL.println("Slack status does not match any known state.");
       //btnPressCount = OFF;
       
     }
-  }     
+
+  }  
+  //displayProfile(profile);
+  DEBUG_SERIAL.println(APIstatus);
+  currentStatus=APIstatus;   
 }
 
 void saveConfigCallback () {
-  Serial.println("Should save config");
+  Serial.println("Setting shouldSaveConfig = true");
   shouldSaveConfig = true;
 }
 
