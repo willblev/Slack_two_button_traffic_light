@@ -1,8 +1,7 @@
 # Slack_two_button_traffic_light
 A physical toy traffic light which functions as a Slack status indicator (read/write)
 
-
-Here's what the traffic toy light looks like. It can play a tune over a speaker, individually flash the lights, and has and two button switches to control the different modes.
+Here's what the traffic toy light looks like. It can play a tune over a speaker, individually flash the lights, and has and two button switches to control the different modes. While we will remove the speaker to make room for the ESP8266 D1 Mini board, the holes in the back of the toy will help to keep the temperature of the ESP8266 down. 
 
 <br>
 
