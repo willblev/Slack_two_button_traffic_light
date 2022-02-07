@@ -18,7 +18,7 @@ To get inside the traffic light toy, we need to remove 4 small Phillips head scr
 
 <br>
 
-Once we are inside, we will need to cut a few wires, remove the speaker, and cut a few traces on the PCB using a pen knife.
+Once we are inside, we will need to cut a few wires, remove the speaker, and cut a few traces on the PCB using a pen knife. Essentially we are going to disable the built-in brain on the PCB, and instead we will use the ESP8266 to read input from the buttons and turn on/off the LEDs.
 
 <br>
 
