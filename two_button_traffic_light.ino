@@ -10,6 +10,8 @@
 #include "button.h"  // Use debouncing code for buttons from https://www.e-tinkers.com/2021/05/the-simplest-button-debounce-solution/
 Button button1;
 Button button2; // define the pins & reading functions for the buttons from 'button.h'
+#define BUTTON_1_PIN D5
+#define BUTTON_2_PIN D6
 
 // Conenct 3 LEDs and 2 button switches to ESP8266 D1 Mini
 #define GREEN_LED_PIN D1
@@ -50,8 +52,8 @@ void setup() {
    pinMode(YELLOW_LED_PIN, OUTPUT);
    pinMode(RED_LED_PIN, OUTPUT);
 
-   button1.init(D5);
-   button2.init(D6);
+   button1.init(BUTTON_1_PIN);
+   button2.init(BUTTON_2_PIN);
 
    Serial.begin(115200); // open the serial port at 115200 bps
    delay(400);
