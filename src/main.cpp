@@ -1,3 +1,4 @@
+#include <Arduino.h>
 // WiFiManager and SPIFFS JSON credential storage from https://randomnerdtutorials.com/wifimanager-with-esp8266-autoconnect-custom-parameter-and-manage-your-ssid-and-password/
 #include <FS.h> //this needs to be first, or it all crashes and burns...
 #include <ESP8266WiFi.h>
@@ -8,6 +9,7 @@
 #include "credentials.h" // import the Slack OAuth token from the other file
 #include "custom_values.h" // import the values from the other file
 #include "button.h"  // Use debouncing code for buttons from https://www.e-tinkers.com/2021/05/the-simplest-button-debounce-solution/
+
 Button button1;
 Button button2; // define the pins & reading functions for the buttons from 'button.h'
 #define BUTTON_1_PIN D5
@@ -45,131 +47,10 @@ WiFiServer server(80);  // Set web server port number to 80
 
 bool shouldSaveConfig = false;  //flag for saving data
 
-
-void setup() {                                           
-   DEBUG_SERIAL.println("Startintg setup");
-   pinMode(GREEN_LED_PIN, OUTPUT);
-   pinMode(YELLOW_LED_PIN, OUTPUT);
-   pinMode(RED_LED_PIN, OUTPUT);
-
-   button1.init(BUTTON_1_PIN);
-   button2.init(BUTTON_2_PIN);
-
-   Serial.begin(115200); // open the serial port at 115200 bps
-   delay(400);
-   DEBUG_SERIAL.println("\nInitialized Serial connection at 115200 bps");
-   
-   
-  DEBUG_SERIAL.println("Mounting FS...");
-  if (SPIFFS.begin()) {
-      DEBUG_SERIAL.println("Mounted file system");
-      if (SPIFFS.exists("/config.json")) {
-        //file exists, reading and loading
-        DEBUG_SERIAL.println("Reading config file");
-        File configFile = SPIFFS.open("/config.json", "r");
-        if (configFile) {
-          DEBUG_SERIAL.println("Opened config file");
-          size_t size = configFile.size();
-          // Allocate a buffer to store contents of the file.
-          std::unique_ptr<char[]> buf(new char[size]);
-
-          configFile.readBytes(buf.get(), size);
-          DynamicJsonDocument config_json_doc(1024);
-          DeserializationError error = deserializeJson(config_json_doc, buf.get());
-          serializeJson(config_json_doc, Serial);
-          if (error) {
-            DEBUG_SERIAL.println("\nparsed json");
-          } else {
-           Serial.println("failed to load json config");
-          }
-        }
-      }
-    } else {
-      Serial.println("failed to mount FS");
-    }
-    //end read
-    delay(1000);
-    WiFiManagerParameter slack_token("slackOAuthToken", "slackOAuthToken", slackOAuthToken, 80);
-  
-    WiFiManager wifiManager;
-    wifiManager.setSaveConfigCallback(saveConfigCallback);    //set config save notify callback
-    
-    wifiManager.addParameter(&slack_token); //add all your parameters here
-    
-    //wifiManager.resetSettings(); // Uncomment and run it once, if you want to erase all the stored information
-        
-    wifiManager.setTimeout(120); //sets timeout (in seconds) until configuration portal gets turned off
-  
-    wifiManager.autoConnect();
-    
-    // if you get here you have connected to the WiFi
-    Serial.println("Connected to WiFi!");
-    
-    //save the custom parameters to FS
-    strcpy(slackOAuthToken, slack_token.getValue());
-    
-    if (shouldSaveConfig) {
-      Serial.println("Saving config");
-      
-      DynamicJsonDocument config_json_doc(1024);
-      config_json_doc["slackOAuthToken"] = slackOAuthToken;
-    
-      File configFile = SPIFFS.open("/config.json", "w");
-      if (!configFile) {
-        Serial.println("Failed to open config file for writing");
-      }
-  
-      serializeJson(config_json_doc, Serial);
-      serializeJson(config_json_doc, configFile);
-      configFile.close();
-      //end save
-    }
-  
-    server.begin();
-    DEBUG_SERIAL.println("Started the server");
-    
-    delay(100);
-    client.setFingerprint(SLACK_FINGERPRINT);
-    DEBUG_SERIAL.println("Set Slack fingerprint");
-
-    
-    delay(200);
-
-}  
-
-
-void loop() {
-  // FIRST we detect button presses, and if they are detected, we set local_upstream to true        
-  if(button1.pressDetected()){
-       btnPressCount++; // Count this press
-       DEBUG_SERIAL.println("button1 pressed");  
-       local_upstream= true;       //as button as been pressed, we know that local is upstream of remote
-       requestDueTime = millis() + 3000; // reset the next time to send status to Slack for 3 seconds from last button press detection 
-    }  
-
-   if(button2.pressDetected()){
-       btnPressCount--; // Count this press, but iterate backwards
-       DEBUG_SERIAL.println("button2 pressed");
-       if(btnPressCount < 0){ btnPressCount = 3; } // if counter goes into negative integers, reset to top of range (circle back 0-3)
-       //as button as been pressed, we know that local is upstream of remote
-       local_upstream= true;
-       requestDueTime = millis() + 3000; // reset the next time to send status to Slack for 3 seconds from last button press detection 
-    } 
- 
-  btnPressCount = btnPressCount % 4; // Keep count in the range 0 to 3 since we only have 4 states
-
-    if (millis() > requestDueTime){  //once enough time has elapsed since the last request, we can send
-        if(local_upstream){
-          updateSlackAPI();  // if the change happened locally, we send the new status to Slack
-        } else {     
-          checkSlackStatus();  // if no change was detected locally, see what current status on Slack is
-          }
-        requestDueTime = millis() + delayBetweenRequests;
-    }
-
-    if(LEDstatus != btnPressCount){updateLEDs();} // update the LEDs if the status has changed
+void saveConfigCallback () {
+  Serial.println("Setting shouldSaveConfig = true");
+  shouldSaveConfig = true;
 }
-
 
 void updateLEDs() {
   
@@ -312,11 +193,6 @@ void checkSlackStatus() { // get the current remote status info from Slack
   currentStatus=APIstatus;   
 }
 
-void saveConfigCallback () {
-  Serial.println("Setting shouldSaveConfig = true");
-  shouldSaveConfig = true;
-}
-
 void displayProfile(SlackProfile profile)
 {
     if (!profile.error)
@@ -342,3 +218,128 @@ void displayProfile(SlackProfile profile)
         Serial.println("error getting profile");
     }
 }
+
+void setup() {                                           
+   DEBUG_SERIAL.println("Startintg setup");
+   pinMode(GREEN_LED_PIN, OUTPUT);
+   pinMode(YELLOW_LED_PIN, OUTPUT);
+   pinMode(RED_LED_PIN, OUTPUT);
+
+   button1.init(BUTTON_1_PIN);
+   button2.init(BUTTON_2_PIN);
+
+   Serial.begin(115200); // open the serial port at 115200 bps
+   delay(400);
+   DEBUG_SERIAL.println("\nInitialized Serial connection at 115200 bps");
+   
+   
+  DEBUG_SERIAL.println("Mounting FS...");
+  if (SPIFFS.begin()) {
+      DEBUG_SERIAL.println("Mounted file system");
+      if (SPIFFS.exists("/config.json")) {
+        //file exists, reading and loading
+        DEBUG_SERIAL.println("Reading config file");
+        File configFile = SPIFFS.open("/config.json", "r");
+        if (configFile) {
+          DEBUG_SERIAL.println("Opened config file");
+          size_t size = configFile.size();
+          // Allocate a buffer to store contents of the file.
+          std::unique_ptr<char[]> buf(new char[size]);
+
+          configFile.readBytes(buf.get(), size);
+          DynamicJsonDocument config_json_doc(1024);
+          DeserializationError error = deserializeJson(config_json_doc, buf.get());
+          serializeJson(config_json_doc, Serial);
+          if (error) {
+            DEBUG_SERIAL.println("\nparsed json");
+          } else {
+           Serial.println("failed to load json config");
+          }
+        }
+      }
+    } else {
+      Serial.println("failed to mount FS");
+    }
+    //end read
+    delay(1000);
+    WiFiManagerParameter slack_token("slackOAuthToken", "slackOAuthToken", slackOAuthToken, 80);
+  
+    WiFiManager wifiManager;
+    wifiManager.setSaveConfigCallback(saveConfigCallback);    //set config save notify callback
+    
+    wifiManager.addParameter(&slack_token); //add all your parameters here
+    
+    //wifiManager.resetSettings(); // Uncomment and run it once, if you want to erase all the stored information
+        
+    wifiManager.setTimeout(120); //sets timeout (in seconds) until configuration portal gets turned off
+  
+    wifiManager.autoConnect();
+    
+    // if you get here you have connected to the WiFi
+    Serial.println("Connected to WiFi!");
+    
+    //save the custom parameters to FS
+    strcpy(slackOAuthToken, slack_token.getValue());
+    
+    if (shouldSaveConfig) {
+      Serial.println("Saving config");
+      
+      DynamicJsonDocument config_json_doc(1024);
+      config_json_doc["slackOAuthToken"] = slackOAuthToken;
+    
+      File configFile = SPIFFS.open("/config.json", "w");
+      if (!configFile) {
+        Serial.println("Failed to open config file for writing");
+      }
+  
+      serializeJson(config_json_doc, Serial);
+      serializeJson(config_json_doc, configFile);
+      configFile.close();
+      //end save
+    }
+  
+    server.begin();
+    DEBUG_SERIAL.println("Started the server");
+    
+    delay(100);
+    client.setFingerprint(SLACK_FINGERPRINT);
+    DEBUG_SERIAL.println("Set Slack fingerprint");
+
+    
+    delay(200);
+
+}  
+
+
+void loop() {
+  // FIRST we detect button presses, and if they are detected, we set local_upstream to true        
+  if(button1.pressDetected()){
+       btnPressCount++; // Count this press
+       DEBUG_SERIAL.println("button1 pressed");  
+       local_upstream= true;       //as button as been pressed, we know that local is upstream of remote
+       requestDueTime = millis() + 3000; // reset the next time to send status to Slack for 3 seconds from last button press detection 
+    }  
+
+   if(button2.pressDetected()){
+       btnPressCount--; // Count this press, but iterate backwards
+       DEBUG_SERIAL.println("button2 pressed");
+       if(btnPressCount < 0){ btnPressCount = 3; } // if counter goes into negative integers, reset to top of range (circle back 0-3)
+       //as button as been pressed, we know that local is upstream of remote
+       local_upstream= true;
+       requestDueTime = millis() + 3000; // reset the next time to send status to Slack for 3 seconds from last button press detection 
+    } 
+ 
+  btnPressCount = btnPressCount % 4; // Keep count in the range 0 to 3 since we only have 4 states
+
+    if (millis() > requestDueTime){  //once enough time has elapsed since the last request, we can send
+        if(local_upstream){
+          updateSlackAPI();  // if the change happened locally, we send the new status to Slack
+        } else {     
+          checkSlackStatus();  // if no change was detected locally, see what current status on Slack is
+          }
+        requestDueTime = millis() + delayBetweenRequests;
+    }
+
+    if(LEDstatus != btnPressCount){updateLEDs();} // update the LEDs if the status has changed
+}
+
