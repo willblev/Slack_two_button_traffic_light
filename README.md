@@ -24,3 +24,14 @@ Once we are inside, we will need to cut a few wires, remove the speaker, and cut
 ![traffic light schematic](https://github.com/willblev/Slack_two_button_traffic_light/blob/main/images/traffic_light_schematic.png?raw=true)
 
 <br>
+
+# Development
+This project is setup to use [PlatformIO](https://platformio.org/) for builds and depenedency management. To build the project run
+```
+platformio run
+```
+
+To upload it to a device run:
+```
+platformio run --target upload
+```
