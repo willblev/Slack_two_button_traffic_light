@@ -3,6 +3,12 @@ A physical toy traffic light which functions as a Slack status indicator (read/w
 
 Here's what the traffic toy light looks like. It can play a tune over a speaker, individually flash the lights, and has and two button switches to control the different modes. While we will remove the speaker to make room for the ESP8266 D1 Mini board; fortunately, the holes in the back of the plastic case which were intended for the speaker will help to keep the temperature of the ESP8266 down. 
 
+*Dimensions*:
+- Height: 13.5 cm(5.31 in)
+- Width: 4.2 cm (1.65 in)
+- Depth: 4.2 cm (1.65 in)
+
+It can snugly fit a D1 Mini ESP8266 board inside of the main body, but you need to trim away a few plastic bits for it to be able to close with the D1 Mini inside. 
 <br>
 
 ![traffic light toy](https://github.com/willblev/Slack_two_button_traffic_light/blob/main/images/traffic_light_toy.jpg?raw=true)
