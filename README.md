@@ -1,5 +1,7 @@
 # Slack_two_button_traffic_light
-A physical toy traffic light which functions as a Slack status indicator (read/write)
+A physical Slack status indicator (read/write) in the shape of a little traffic light
+
+Working at an office in 2022, sometimes it is hard to know if someone is very busy or is free for a chat, since everyone almost always has headphones in place. This traffic light is an easily interpretable way of knowing when someone is free, busy, or very busy. 
 
 Here's what the traffic toy light looks like. It can play a tune over a speaker, individually flash the lights, and has and two button switches to control the different modes. While we will remove the speaker to make room for the ESP8266 D1 Mini board; fortunately, the holes in the back of the plastic case which were intended for the speaker will help to keep the temperature of the ESP8266 down. 
 
