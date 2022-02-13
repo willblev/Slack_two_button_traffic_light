@@ -10,10 +10,13 @@
 #include "custom_values.h" // import the values from the other file
 #include "Button.h"  // Use debouncing code for buttons from https://www.e-tinkers.com/2021/05/the-simplest-button-debounce-solution/
 
-Button button1;
-Button button2; // define the pins & reading functions for the buttons from 'button.h'
+
+ // Define the pins & reading functions for the buttons from 'Button.h'
+
 #define BUTTON_1_PIN D5
 #define BUTTON_2_PIN D6
+Button button1(BUTTON_1_PIN);
+Button button2(BUTTON_2_PIN);
 
 // Conenct 3 LEDs and 2 button switches to ESP8266 D1 Mini
 #define GREEN_LED_PIN D1
@@ -225,9 +228,6 @@ void setup() {
    pinMode(YELLOW_LED_PIN, OUTPUT);
    pinMode(RED_LED_PIN, OUTPUT);
 
-   button1.init(BUTTON_1_PIN);
-   button2.init(BUTTON_2_PIN);
-
    Serial.begin(115200); // open the serial port at 115200 bps
    delay(400);
    DEBUG_SERIAL.println("\nInitialized Serial connection at 115200 bps");
@@ -313,14 +313,14 @@ void setup() {
 
 void loop() {
   // FIRST we detect button presses, and if they are detected, we set local_upstream to true        
-  if(button1.pressDetected()){
+  if(button1.isPressed()){
        btnPressCount++; // Count this press
        DEBUG_SERIAL.println("button1 pressed");  
        local_upstream= true;       //as button as been pressed, we know that local is upstream of remote
        requestDueTime = millis() + 3000; // reset the next time to send status to Slack for 3 seconds from last button press detection 
     }  
 
-   if(button2.pressDetected()){
+   if(button2.isPressed()){
        btnPressCount--; // Count this press, but iterate backwards
        DEBUG_SERIAL.println("button2 pressed");
        if(btnPressCount < 0){ btnPressCount = 3; } // if counter goes into negative integers, reset to top of range (circle back 0-3)
