@@ -8,7 +8,7 @@
 #include <ArduinoJson.h>          // https://github.com/bblanchon/ArduinoJson  version 6.x
 #include "credentials.h" // import the Slack OAuth token from the other file
 #include "custom_values.h" // import the values from the other file
-#include "button.h"  // Use debouncing code for buttons from https://www.e-tinkers.com/2021/05/the-simplest-button-debounce-solution/
+#include "Button.h"  // Use debouncing code for buttons from https://www.e-tinkers.com/2021/05/the-simplest-button-debounce-solution/
 
 Button button1;
 Button button2; // define the pins & reading functions for the buttons from 'button.h'
