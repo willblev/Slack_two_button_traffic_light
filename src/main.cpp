@@ -8,8 +8,8 @@
 #include <ArduinoJson.h>          // https://github.com/bblanchon/ArduinoJson  version 6.x
 #include "credentials.h" // import the Slack OAuth token from the other file
 #include "custom_values.h" // import the values from the other file
-#include "Button.h"  // Use debouncing code for buttons from https://www.e-tinkers.com/2021/05/the-simplest-button-debounce-solution/
-
+#include "Button.h"  // Use our own button module
+#include "Led.h" // Use our own LED module 
 
  // Define the pins & reading functions for the buttons from 'Button.h'
 
@@ -22,6 +22,7 @@ Button button2(BUTTON_2_PIN);
 #define GREEN_LED_PIN D1
 #define YELLOW_LED_PIN D2
 #define RED_LED_PIN D3
+Led traffic_light(GREEN_LED_PIN, YELLOW_LED_PIN, RED_LED_PIN);
 
 #define DEBUG true  // set to 'true' if you want to print lines for debugging
 #define DEBUG_SERIAL \
@@ -63,10 +64,8 @@ void updateLEDs() {
 
        DEBUG_SERIAL.println("Changing LEDs to off");
        LEDstatus=OFF;
+       traffic_light.off();
        currentStatus=message0;
-       digitalWrite(GREEN_LED_PIN, LOW);
-       digitalWrite(YELLOW_LED_PIN, LOW);
-       digitalWrite(RED_LED_PIN, LOW);
        delay(10); 
        break;
     } 
@@ -75,10 +74,8 @@ void updateLEDs() {
     {
        DEBUG_SERIAL.println("Changing LEDs to green.");
        LEDstatus=GREEN;
+       traffic_light.green();
        currentStatus=message1;
-       digitalWrite(GREEN_LED_PIN, HIGH);
-       digitalWrite(YELLOW_LED_PIN, LOW);
-       digitalWrite(RED_LED_PIN, LOW);
        delay(10);
        break;  
     }
@@ -87,10 +84,8 @@ void updateLEDs() {
     {
        DEBUG_SERIAL.println("Changing LEDs to yellow.");
        LEDstatus=YELLOW;
+       traffic_light.yellow();
        currentStatus=message2;
-       digitalWrite(GREEN_LED_PIN, LOW);
-       digitalWrite(YELLOW_LED_PIN, HIGH);
-       digitalWrite(RED_LED_PIN, LOW);
        delay(10);
        break;  
     }
@@ -99,10 +94,8 @@ void updateLEDs() {
     {
        DEBUG_SERIAL.println("Changing LEDs to red.");
        LEDstatus=RED;
+       traffic_light.red();
        currentStatus=message3;
-       digitalWrite(GREEN_LED_PIN, LOW);
-       digitalWrite(YELLOW_LED_PIN, LOW);
-       digitalWrite(RED_LED_PIN, HIGH);
        delay(10);
        break;  
     }
@@ -224,9 +217,6 @@ void displayProfile(SlackProfile profile)
 
 void setup() {                                           
    DEBUG_SERIAL.println("Startintg setup");
-   pinMode(GREEN_LED_PIN, OUTPUT);
-   pinMode(YELLOW_LED_PIN, OUTPUT);
-   pinMode(RED_LED_PIN, OUTPUT);
 
    Serial.begin(115200); // open the serial port at 115200 bps
    delay(400);

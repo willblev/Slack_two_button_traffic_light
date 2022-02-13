@@ -6,12 +6,16 @@
 class Led {
   
   private:
-    byte pin;
+    uint16_t greenPin;
+    uint16_t yellowPin;
+    uint16_t redPin;
     
   public:
-    Led(byte pin);
+    Led(uint16_t greenPin, uint16_t yellowPin, uint16_t redPin);
     void init();
-    void on();
+    void green();
+    void yellow();
+    void red();
     void off();
 };
 
