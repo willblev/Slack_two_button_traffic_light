@@ -12,23 +12,22 @@
 #include "Led.h" // Use our own LED module 
 
  // Define the pins & reading functions for the buttons from 'Button.h'
-
-#define BUTTON_1_PIN D5
-#define BUTTON_2_PIN D6
+#define BUTTON_1_PIN D6
+#define BUTTON_2_PIN D7
 Button button1(BUTTON_1_PIN);
 Button button2(BUTTON_2_PIN);
 
 // Define the pins & writing functions for the LEDs from 'Led.h'
-#define GREEN_LED_PIN D3
+#define GREEN_LED_PIN D1
 #define YELLOW_LED_PIN D2
-#define RED_LED_PIN D1
+#define RED_LED_PIN D3
 // The arguments for the 'Led' class are as follows: 
 // greenPin
 // yellowPin 
 // redPin
 // [optional, default=230] maxBrightness (0-255)
 // [optional, default=7] fadeAmount (3-10 for best results))
-Led traffic_light(GREEN_LED_PIN, YELLOW_LED_PIN, RED_LED_PIN, 180, 15);
+Led traffic_light(GREEN_LED_PIN, YELLOW_LED_PIN, RED_LED_PIN, 180, 10);
 
 #define DEBUG true  // set to 'true' if you want to print lines for debugging
 #define DEBUG_SERIAL \
@@ -104,7 +103,7 @@ void updateLEDs() {
        currentStatus=message3;
        delay(10);
        break;  
-    }
+    }    
   }
 }
 
@@ -223,6 +222,7 @@ void displayProfile(SlackProfile profile)
 
 void setup() {                                           
    DEBUG_SERIAL.println("Startintg setup");
+   traffic_light.yellow(); // turn on yellow light to signal start of setup loop
 
    Serial.begin(115200); // open the serial port at 115200 bps
    delay(400);
@@ -301,9 +301,7 @@ void setup() {
     client.setFingerprint(SLACK_FINGERPRINT);
     DEBUG_SERIAL.println("Set Slack fingerprint");
 
-    
-    delay(200);
-
+    traffic_light.green(); // turn on green light to signal end of setup loop
 }  
 
 
@@ -336,6 +334,6 @@ void loop() {
         requestDueTime = millis() + delayBetweenRequests;
     }
 
-    if(LEDstatus != btnPressCount){updateLEDs();} // update the LEDs if the status has changed
+    if(LEDstatus != btnPressCount){ updateLEDs(); } // update the LEDs if the status has changed
 }
 
