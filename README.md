@@ -9,7 +9,7 @@ Working in a shared work space has a ton of benefits! However, there are some dr
 Here's what the traffic toy light looks like:
 <br>
 
-![traffic light toy](https://github.com/willblev/Slack_two_button_traffic_light/blob/main/images/traffic_light_toy.jpg?raw=true)
+![traffic light toy](https://github.com/willblev/Slack_two_button_traffic_light/blob/main/images/traffic_light_lineup.png?raw=true)
 
 <br>
 
@@ -21,13 +21,14 @@ It costs about $2 USD and is available on a variety of sites. It has a PCB with 
 - Depth: 4.2 cm (1.65 in)
 
 
-To open up the traffic light toy, we need to remove 4 small Phillips head screws: 
+To open up the traffic light toy, we need to remove 4 small Phillips head screws on the back, which are circled in red above. 
 
 <br>
 
-![traffic light screws](https://github.com/willblev/Slack_two_button_traffic_light/blob/main/images/traffic_light_screws.png?raw=true)
+![taking it apart](https://github.com/willblev/Slack_two_button_traffic_light/blob/main/images/taken_apart.jpg?raw=true)
 
 <br>
+
 
 It looks like we can fit a header-less D1 Mini ESP8266 board inside of the main body. We just need to remove the small speaker and trim away a few plastic bits. It is serendipitous that the holes in plastic case behind the speaker will also serve as ventilation to keep the ESP8266 from getting too hot. 
 
