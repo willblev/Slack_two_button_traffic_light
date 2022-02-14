@@ -12,7 +12,7 @@ bool local_upstream = false; // if the traffic light status (local) is more rece
 
 int LEDstatus=OFF;
 
-
+// Try to use emojis of different shapes to help with colorblind/accessibility, since red/green circle can look similar
 char* message0 = "Away";
 char* emoji0 = ":brb:";
 
@@ -20,7 +20,7 @@ char* message1 = "Available";
 char* emoji1 = ":large_green_circle:";
       
 char* message2 = "Busy";
-char* emoji2 = ":large_yellow_circle:";
+char* emoji2 = ":large_yellow_square:";
 
 char* message3 = "Do not disturb";
 char* emoji3 = ":octagonal_sign:";
