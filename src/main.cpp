@@ -19,11 +19,16 @@ Button button1(BUTTON_1_PIN);
 Button button2(BUTTON_2_PIN);
 
 // Define the pins & writing functions for the LEDs from 'Led.h'
-#define GREEN_LED_PIN D1
+#define GREEN_LED_PIN D3
 #define YELLOW_LED_PIN D2
-#define RED_LED_PIN D3
-// Led class arguments are as follows: green pin, yellow pin, red pin, max brightness (0-255), fade speed (3-10 for best results))
-Led traffic_light(GREEN_LED_PIN, YELLOW_LED_PIN, RED_LED_PIN, 180, 5);
+#define RED_LED_PIN D1
+// The arguments for the 'Led' class are as follows: 
+// greenPin
+// yellowPin 
+// redPin
+// [optional, default=230] maxBrightness (0-255)
+// [optional, default=7] fadeAmount (3-10 for best results))
+Led traffic_light(GREEN_LED_PIN, YELLOW_LED_PIN, RED_LED_PIN, 180, 15);
 
 #define DEBUG true  // set to 'true' if you want to print lines for debugging
 #define DEBUG_SERIAL \

@@ -7,6 +7,8 @@ Led::Led(uint16_t greenPin, uint16_t yellowPin, uint16_t redPin, int maxBrightne
   this->greenPin = greenPin;  
   this->yellowPin = yellowPin;  
   this->redPin = redPin;
+  this ->maxBrightness = maxBrightness;
+  this ->fadeAmount = fadeAmount;
   init();
 }
 
