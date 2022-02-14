@@ -27,7 +27,7 @@ Button button2(BUTTON_2_PIN);
 // redPin
 // [optional, default=230] maxBrightness (0-255)
 // [optional, default=7] fadeAmount (3-10 for best results))
-Led traffic_light(GREEN_LED_PIN, YELLOW_LED_PIN, RED_LED_PIN, 180, 10);
+Led traffic_light(GREEN_LED_PIN, YELLOW_LED_PIN, RED_LED_PIN, 100, 10);
 
 #define DEBUG true  // set to 'true' if you want to print lines for debugging
 #define DEBUG_SERIAL \
@@ -301,7 +301,15 @@ void setup() {
     client.setFingerprint(SLACK_FINGERPRINT);
     DEBUG_SERIAL.println("Set Slack fingerprint");
 
-    traffic_light.green(); // turn on green light to signal end of setup loop
+    // flash green light to signal end of setup loop
+    traffic_light.green(); 
+    traffic_light.off();
+    delay(100);
+    traffic_light.green();
+    traffic_light.off();
+    delay(100);
+    traffic_light.green();
+    traffic_light.off();
 }  
 
 
