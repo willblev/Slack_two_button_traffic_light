@@ -9,6 +9,7 @@ Led::Led(uint16_t greenPin, uint16_t yellowPin, uint16_t redPin) {
   this->redPin = redPin;
   init();
 }
+
 void Led::init() {
   pinMode(greenPin, OUTPUT);
   pinMode(yellowPin, OUTPUT);
@@ -18,6 +19,7 @@ void Led::init() {
   // call the function off() which already does that
   off();
 }
+
 void Led::green() {
   digitalWrite(greenPin, HIGH);
   digitalWrite(yellowPin, LOW);

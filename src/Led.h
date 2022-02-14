@@ -1,7 +1,7 @@
 #ifndef MY_LEDS_H
 #define MY_LEDS_H
-#include <Arduino.h>
 
+#include <Arduino.h>
 
 class Led {
   
@@ -18,6 +18,5 @@ class Led {
     void red();
     void off();
 };
-
 
 #endif
