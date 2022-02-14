@@ -13,7 +13,7 @@ Here's what the traffic toy light looks like:
 
 <br>
 
-It costs about $2 USD and is available on a variety of sites. It has a PCB with an integrated IC which runs off of 3 coin cells (~4.7v); it has 2 button switches, a small speaker, and three white SMD LEDs. Out of the box, the two buttons activate different modes of music and animations using the three LEDs. 
+It costs about $2 USD and is available on a variety of sites. It has a PCB with an integrated IC which runs off of 3 coin cells (~4.7v); it has 2 button switches, a small speaker, and three white SMD LEDs (3.4v drop). Out of the box, the two buttons activate different modes of music and animations using the three LEDs. 
 
 *Dimensions*
 - Height: 13.5 cm(5.31 in)
@@ -21,25 +21,33 @@ It costs about $2 USD and is available on a variety of sites. It has a PCB with 
 - Depth: 4.2 cm (1.65 in)
 
 
-To open up the traffic light toy, we need to remove 4 small Phillips head screws on the back, which are circled in red above. 
+To open up the traffic light toy, we need to remove 4 small Phillips head screws on the back, which are circled in red in the first image above. 
 
 <br>
 
-![taking it apart](https://github.com/willblev/Slack_two_button_traffic_light/blob/main/images/taken_apart.jpg?raw=true)
+![taking it apart](https://github.com/willblev/Slack_two_button_traffic_light/blob/main/images/traffic_light_PCB.png?raw=true)
 
 <br>
 
 
-It looks like we can fit a header-less D1 Mini ESP8266 board inside of the main body. We just need to remove the small speaker and trim away a few plastic bits. It is serendipitous that the holes in plastic case behind the speaker will also serve as ventilation to keep the ESP8266 from getting too hot. 
-
-
-Once we are inside, we need to cut a few wires to remove the speaker and coin battery contacts. We will also cut several traces on the PCB (severing a connection) using a pen knife in order to connect the LEDs to our D1 Mini board. Here’s where we need to cut:
+With a few modifications, we can just barely fit a header-less D1 Mini ESP8266 board inside of the main body, and plug a USB cable into it. We will need to remove the small speaker, the battery contacts, and trim away a few plastic bits. It is serendipitous that the holes in plastic case behind the speaker will also serve as ventilation to keep the ESP8266 from getting too hot. We will also cut several traces on the PCB (severing a connection) using a hobby knife. Here’s where we need to cut:
 
 <br>
 
 ![traffic light schematic](https://github.com/willblev/Slack_two_button_traffic_light/blob/main/images/traffic_light_schematic.png?raw=true)
 
 <br>
+
+Once we cut the wires and PCB traces, we can remove the speakers and the battery contacts. This is what it will look like after this is done:
+
+<br>
+
+![traffic light schematic](https://github.com/willblev/Slack_two_button_traffic_light/blob/main/images/cut_traces.jpg?raw=true)
+
+<br>
+
+Now we can start to wire up the ESP8266 D1 Mini. I began by wiring up the LEDs one by one, soldering directly to the junction between the tinned SMD pad on the PCB and the positive terminal of the LED; I used flux, a lower iron temperature, and minimal solder to avoid melting the LED). I opted to include a ~300 Ohm current-limiting resistor between Gnd on the toy (silkscreen on traffic light PCB says **V-**) and the Gnd pin on the D1 Mini, which also somewhat reduces the maximum brightness. 
+
 
 # The code
 
