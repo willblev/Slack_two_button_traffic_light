@@ -52,3 +52,28 @@ To upload it to a connected device, run:
 ```
 platformio run --target upload
 ```
+
+
+# Setting up Slack
+
+For this device to be able to access and modify your Slack status, presence, and DnD settings, we need to create a secret key that it can use to prove to the Slack API that it has permission to do so. We can follow a guide [adapted from these instructions here](https://github.com/witnessmenow/arduino-slack-api#getting-auth-token-this-may-change):
+
+##
+- Create a new Slack App [by clicking here](https://api.slack.com/apps)
+- Name your app whatever you want, such as "My traffic light app", then set the "Development Slack Workspace" to whichever workspace that you want the traffic light to update your status on
+- Look on the lefthand side menu for "OAuth & Permissions"
+- Scroll down to the section that says "Scopes", then under "User Token Scopes", click the "Add an OAuth Scope"
+- Add the following scopes to have full functionality:
+
+| Enpoint        | scope           |
+| ------------- |-------------|
+| setPresence      | users:write |
+| setCustomStatus      | users.profile:write |
+| getCurrentStatus |   users.profile:read |
+| <undef> setDnD   |  dnd:write   |
+| <undef> getDnD   |  dnd:read    |
+
+- Once you've set these scopes, scroll up to the top of the page and click "Install app to workspace"
+- Click "Allow" on the next page
+- You will now have an OAuth Access Token up the top of the page, this is referred to as the `SLACK_ACCESS_TOKEN` in the ArduinoSlack library
+
