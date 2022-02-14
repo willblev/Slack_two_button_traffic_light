@@ -56,7 +56,7 @@ void Led::green() {
     analogWrite(greenPin, brightnessGreen); 
     analogWrite(yellowPin, brightnessYellow); 
     analogWrite(redPin, brightnessRed);
-    delay(20);
+    delay(delayAmount);
   }
 }
 
@@ -69,7 +69,7 @@ void Led::yellow() {
     analogWrite(greenPin, brightnessGreen); 
     analogWrite(yellowPin, brightnessYellow); 
     analogWrite(redPin, brightnessRed);
-    delay(20);
+    delay(delayAmount);
   }
 }
 
@@ -82,7 +82,7 @@ void Led::red() {
     analogWrite(greenPin, brightnessGreen); 
     analogWrite(yellowPin, brightnessYellow); 
     analogWrite(redPin, brightnessRed);
-    delay(20);
+    delay(delayAmount);
   }
 }
 void Led::off() {
@@ -93,6 +93,6 @@ void Led::off() {
     analogWrite(greenPin, brightnessGreen); 
     analogWrite(yellowPin, brightnessYellow); 
     analogWrite(redPin, brightnessRed);
-    delay(20);
+    delay(delayAmount);
   }
 }

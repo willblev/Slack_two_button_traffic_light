@@ -14,6 +14,7 @@ class Led {
     int brightnessRed = 0;
     int maxBrightness = 180;
     int fadeAmount = 5;
+    int delayAmount = 10;
     
     
   public:
