@@ -20,79 +20,65 @@ void Led::init() {
   off();
 }
 
-/*
-void Led::green() {
-  digitalWrite(greenPin, HIGH);
-  digitalWrite(yellowPin, LOW);
-  digitalWrite(redPin, LOW);
+
+// Fade off the LED by progressively decreasing the brightness of pins individually:
+int Led::fadeOff(uint16_t pin, int currentBrightness) {
+  if(currentBrightness > 0) {
+    currentBrightness -=fadeAmount;
+  
+  } else if(currentBrightness < 0 ) {
+      currentBrightness = 0;}
+  
+  analogWrite(pin, currentBrightness);
+  return(currentBrightness); 
 }
 
-void Led::yellow() {
-  digitalWrite(greenPin, LOW);
-  digitalWrite(yellowPin, HIGH);
-  digitalWrite(redPin, LOW);
-}
-
-void Led::red() {
-  digitalWrite(greenPin, LOW);
-  digitalWrite(yellowPin, LOW);
-  digitalWrite(redPin, HIGH);
+// Fade on the LED by progressively increasing the brightness of pins individually:
+int Led::fadeOn(uint16 pin, int currentBrightness) {
+  currentBrightness +=fadeAmount;
+  if(currentBrightness > maxBrightness){
+    currentBrightness = maxBrightness;
+    }
+  
+  analogWrite(pin, currentBrightness);
+  return(currentBrightness); 
 }
 
 void Led::off() {
-  digitalWrite(greenPin, LOW);
-  digitalWrite(yellowPin, LOW);
-  digitalWrite(redPin, LOW);
+  while (brightnessGreen || brightnessYellow || brightnessRed){
+    brightnessGreen = fadeOff(greenPin,brightnessGreen);
+    brightnessYellow = fadeOff(yellowPin,brightnessYellow);
+    brightnessRed = fadeOff(redPin,brightnessRed);  
+    delay(delayAmount);
+  } 
 }
-*/
 
-// set the brightness of pins individually:
 void Led::green() {
   while (brightnessGreen < maxBrightness){
-    brightnessGreen += fadeAmount;
-    if(brightnessGreen > maxBrightness){brightnessGreen = maxBrightness;}
-    if(brightnessYellow > 0 ){brightnessYellow -=fadeAmount;} else if(brightnessYellow < 0 ) {brightnessYellow = 0;}
-    if(brightnessRed > 0){brightnessRed -=fadeAmount;} else if(brightnessRed < 0 ) {brightnessRed = 0;}
-    analogWrite(greenPin, brightnessGreen); 
-    analogWrite(yellowPin, brightnessYellow); 
-    analogWrite(redPin, brightnessRed);
+    brightnessGreen = fadeOn(greenPin,brightnessGreen);
+    brightnessYellow = fadeOff(yellowPin,brightnessYellow);
+    brightnessRed = fadeOff(redPin,brightnessRed);
     delay(delayAmount);
   }
 }
 
 void Led::yellow() {
   while (brightnessYellow < maxBrightness){
-    brightnessYellow += fadeAmount;
-    if(brightnessYellow > maxBrightness){brightnessYellow = maxBrightness;}
-    if(brightnessGreen){brightnessGreen -=fadeAmount;} else if(brightnessGreen < 0 ) {brightnessGreen = 0;}
-    if(brightnessRed){brightnessRed -=fadeAmount;} else if(brightnessRed < 0 ) {brightnessRed = 0;}
-    analogWrite(greenPin, brightnessGreen); 
-    analogWrite(yellowPin, brightnessYellow); 
-    analogWrite(redPin, brightnessRed);
+    brightnessGreen = fadeOff(greenPin,brightnessGreen);
+    brightnessYellow = fadeOn(yellowPin,brightnessYellow);
+    brightnessRed = fadeOff(redPin,brightnessRed);
     delay(delayAmount);
   }
 }
 
 void Led::red() {
   while (brightnessRed < maxBrightness){
-    brightnessRed += fadeAmount;
-    if(brightnessRed > maxBrightness){brightnessRed = maxBrightness;}
-    if(brightnessYellow > 0 ){brightnessYellow -=fadeAmount;} else if(brightnessYellow < 0 ) {brightnessYellow = 0;}
-    if(brightnessGreen){brightnessGreen -=fadeAmount;} else if(brightnessGreen < 0 ) {brightnessGreen = 0;}
-    analogWrite(greenPin, brightnessGreen); 
-    analogWrite(yellowPin, brightnessYellow); 
-    analogWrite(redPin, brightnessRed);
+    brightnessGreen = fadeOff(greenPin,brightnessGreen);
+    brightnessYellow = fadeOff(yellowPin,brightnessYellow);
+    brightnessRed = fadeOn(redPin,brightnessRed);
     delay(delayAmount);
   }
 }
-void Led::off() {
-  while (brightnessGreen || brightnessYellow || brightnessRed){
-    if(brightnessGreen){brightnessGreen -=fadeAmount;} else if(brightnessGreen < 0 ) {brightnessGreen = 0;}
-    if(brightnessYellow > 0 ){brightnessYellow -=fadeAmount;} else if(brightnessYellow < 0 ) {brightnessYellow = 0;}
-    if(brightnessRed){brightnessRed -=fadeAmount;} else if(brightnessRed < 0 ) {brightnessRed = 0;}
-    analogWrite(greenPin, brightnessGreen); 
-    analogWrite(yellowPin, brightnessYellow); 
-    analogWrite(redPin, brightnessRed);
-    delay(delayAmount);
-  }
-}
+
+
+
