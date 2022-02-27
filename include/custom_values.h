@@ -13,7 +13,8 @@ bool local_upstream = false; // if the traffic light status (local) is more rece
 char* NTPaddress = "pool.ntp.org"; // "es.pool.ntp.org" is for Spain, but we can let the default address decide the closest server to us
 int8_t GMTOffsetHours = 1;
 int16_t GMTOffsetSeconds = GMTOffsetHours * 3600; 
-unsigned long epochTime;
+unsigned long delayBetweenNTPRequests = 60000; // set to 1 minute, can be changed using setUpdateInterval()
+
 
 int LEDstatus=OFF;
 

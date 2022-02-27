@@ -7,7 +7,7 @@
 #include <WiFiManager.h>          // https://github.com/tzapu/WiFiManager
 #include <ArduinoJson.h>          // https://github.com/bblanchon/ArduinoJson  version 6.x
 #include <NTPClient.h> 
-
+#include <WiFiUdp.h>
 #include "credentials.h" // import the Slack OAuth token from the other file
 #include "custom_values.h" // import the values from the other file
 #include "Button.h"  // Use our own button module
@@ -47,8 +47,11 @@ WiFiClientSecure client;
 // Initialize Aruino Slack API library
 ArduinoSlack slack(client, slackOAuthToken);
 
+// Initialize NTP service
+WiFiUDP ntpUDP;
+NTPClient timeClient(ntpUDP, NTPaddress, GMTOffsetSeconds, delayBetweenNTPRequests);
 
-unsigned long delayBetweenRequests = 30000; // Time between requests (1 minute)
+unsigned long delayBetweenRequests = 30000; // Time between slack requests in millis
 unsigned long requestDueTime;    
 
 
@@ -222,22 +225,48 @@ void displayProfile(SlackProfile profile)
     }
 }
 
-void getEpochTime() {
-  timeClient.update();
-  epochTime = timeClient.getEpochTime();
-  DEBUG_SERIAL.print("Epoch Time from NTP: ");
-  DEBUG_SERIAL.println(epochTime);
-}
 
-void getFormattedTime() {
-  timeClient.update();
+void getFormattedTime(){
+  //print a formatted version of the current time
   String formattedTime = timeClient.getFormattedTime();
-  DEBUG_SERIAL.print("Formatted Time: ");
+  DEBUG_SERIAL.println("Formatted Time: ");
   DEBUG_SERIAL.println(formattedTime);  
 }
 
+unsigned long whenWasLastMidnight(unsigned long epochTime){
+  // calculate the Epoch time at midnight of the current day, so we can calculate what future times will be
+  // eg 8PM today will be today's Epoch midnight plus 8*3600 seconds
+  struct tm *ptm = gmtime ((time_t *)&epochTime);
+  unsigned long hoursSinceMidnight = ptm->tm_hour;
+  unsigned long minutesAfterHour = ptm->tm_min;
+  unsigned long secondsAfterMinute = ptm->tm_sec;
+  unsigned long epochAtLastMidnight = epochTime - ((hoursSinceMidnight*3600) + (minutesAfterHour*60) + secondsAfterMinute);
+  DEBUG_SERIAL.print("Hours since last midnight: ");
+  DEBUG_SERIAL.println(String(hoursSinceMidnight));  
+  DEBUG_SERIAL.print("Minutes since last hour: ");
+  DEBUG_SERIAL.println(String(minutesAfterHour));
+  DEBUG_SERIAL.print("seconds since last minute: ");
+  DEBUG_SERIAL.println(String(secondsAfterMinute));
+
+  DEBUG_SERIAL.print("Epoch Time at last midnight: ");
+  DEBUG_SERIAL.println(epochAtLastMidnight);
+  getFormattedTime();
+  return(epochAtLastMidnight);  
+}
+
+unsigned long getEpochTime() {
+  timeClient.update();
+  unsigned long epochTime = timeClient.getEpochTime();
+  DEBUG_SERIAL.print("Epoch Time from NTP: ");
+  DEBUG_SERIAL.println(epochTime);
+  whenWasLastMidnight(epochTime);
+  return(epochTime);
+}
+
+
+
 void setup() {                                           
-   DEBUG_SERIAL.println("Startintg setup");
+   DEBUG_SERIAL.println("Starting setup");
    traffic_light.yellow(); // turn on yellow light to signal start of setup loop
 
    Serial.begin(115200); // open the serial port at 115200 bps
@@ -318,10 +347,8 @@ void setup() {
     DEBUG_SERIAL.println("Set Slack fingerprint");
 
     // Start and configure NTP service
-    WiFiUDP ntpUDP;
-    NTPClient timeClient(ntpUDP, NTPaddress);
     timeClient.begin();
-    timeClient.setTimeOffset(GMTOffsetSeconds);
+    //timeClient.setTimeOffset(GMTOffsetSeconds);
 
 
     // flash green light to signal end of setup loop
@@ -358,7 +385,6 @@ void loop() {
 
     if (millis() > requestDueTime){  //once enough time has elapsed since the last request, we can send
         getEpochTime(); // print Epoch time
-        getFormattedTime();
 
         if(local_upstream){
           updateSlackAPI();  // if the change happened locally, we send the new status to Slack
