@@ -1,5 +1,5 @@
 # Slack two button traffic light
-An ESP8266-based Slack status indicator that can read and write a users status using the Slack API.
+An ESP8266-based Slack status indicator that can read and write a users status using the Slack API. While the concept of the project was concieved independently, it turns out [other folks had the same idea before us](https://github.com/witnessmenow/arduino-slack-api#getting-auth-token-this-may-change)! As such, the code is based off of the prior work of some clever and generous people who beat us to the punch. 
 
 ## Motivation
 Working in a shared work space has a ton of benefits! However, there are some drawbacks; for example, if someone needs to focus on an important task, it can be difficult for their coworkers to know that they shouldn't start up a conversation. Having a visual indicator of a teammates availability, be it a post-it note on the back of a chair, putting on headphones, or something else, can be a quick and easy way to communicate the message. We thought that using a traffic light was perfect fit, since it's fairly intuitive to know when someone is available, busy, or should not be disturbed. 
