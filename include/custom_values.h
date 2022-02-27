@@ -10,6 +10,11 @@ char* lastStatus = "Away";
 char* APIstatus = "";
 bool local_upstream = false; // if the traffic light status (local) is more recently updated than the Slack API, local_upstream = true
 
+char* NTPaddress = "pool.ntp.org"; // "es.pool.ntp.org" is for Spain, but we can let the default address decide the closest server to us
+int8_t GMTOffsetHours = 1;
+int16_t GMTOffsetSeconds = GMTOffsetHours * 3600; 
+unsigned long epochTime;
+
 int LEDstatus=OFF;
 
 // Try to use emojis of different shapes to help with colorblind/accessibility, since red/green circle can look similar

@@ -6,6 +6,8 @@
 #include <ESP8266WebServer.h>
 #include <WiFiManager.h>          // https://github.com/tzapu/WiFiManager
 #include <ArduinoJson.h>          // https://github.com/bblanchon/ArduinoJson  version 6.x
+#include <NTPClient.h> 
+
 #include "credentials.h" // import the Slack OAuth token from the other file
 #include "custom_values.h" // import the values from the other file
 #include "Button.h"  // Use our own button module
@@ -220,6 +222,20 @@ void displayProfile(SlackProfile profile)
     }
 }
 
+void getEpochTime() {
+  timeClient.update();
+  epochTime = timeClient.getEpochTime();
+  DEBUG_SERIAL.print("Epoch Time from NTP: ");
+  DEBUG_SERIAL.println(epochTime);
+}
+
+void getFormattedTime() {
+  timeClient.update();
+  String formattedTime = timeClient.getFormattedTime();
+  DEBUG_SERIAL.print("Formatted Time: ");
+  DEBUG_SERIAL.println(formattedTime);  
+}
+
 void setup() {                                           
    DEBUG_SERIAL.println("Startintg setup");
    traffic_light.yellow(); // turn on yellow light to signal start of setup loop
@@ -301,6 +317,13 @@ void setup() {
     client.setFingerprint(SLACK_FINGERPRINT);
     DEBUG_SERIAL.println("Set Slack fingerprint");
 
+    // Start and configure NTP service
+    WiFiUDP ntpUDP;
+    NTPClient timeClient(ntpUDP, NTPaddress);
+    timeClient.begin();
+    timeClient.setTimeOffset(GMTOffsetSeconds);
+
+
     // flash green light to signal end of setup loop
     traffic_light.green(); 
     traffic_light.off();
@@ -334,6 +357,9 @@ void loop() {
   btnPressCount = btnPressCount % 4; // Keep count in the range 0 to 3 since we only have 4 states
 
     if (millis() > requestDueTime){  //once enough time has elapsed since the last request, we can send
+        getEpochTime(); // print Epoch time
+        getFormattedTime();
+
         if(local_upstream){
           updateSlackAPI();  // if the change happened locally, we send the new status to Slack
         } else {     
