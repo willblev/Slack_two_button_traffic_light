@@ -188,7 +188,7 @@ void updateSlackAPI() { // if a change has been registered locally, but hasn't b
     
     case 1: // green
     {
-      profile = slack.setCustomStatus(message1, emoji1, slackStatusUntilTime(18,42));
+      profile = slack.setCustomStatus(message1, emoji1, slackStatusUntilTime(18,00));
       delay(50);
       slack.setPresence(SLACK_PRESENCE_AUTO);
       break;
@@ -196,7 +196,7 @@ void updateSlackAPI() { // if a change has been registered locally, but hasn't b
 
     case 2: // yellow
     { 
-      profile = slack.setCustomStatus(message2, emoji2, timeout2 + getEpochTime());
+      profile = slack.setCustomStatus(message2, emoji2, slackStatusUntilTime(18,00));
       delay(50);
       slack.setPresence(SLACK_PRESENCE_AUTO);
       break;
@@ -204,7 +204,7 @@ void updateSlackAPI() { // if a change has been registered locally, but hasn't b
     
     case 3: //red
     {
-      profile = slack.setCustomStatus(message3, emoji3, timeout3 + getEpochTime());
+      profile = slack.setCustomStatus(message3, emoji3, timeout3 + slackStatusUntilTime(18,00));
       delay(50);
       slack.setPresence(SLACK_PRESENCE_AUTO);
       break;
