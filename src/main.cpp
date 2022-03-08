@@ -308,6 +308,7 @@ void displayProfile(SlackProfile profile)
 }
 
 void goToSleep(){
+  Serial.println("Going into light sleep!");
   // actually enter light sleep:
   // the special timeout value of 0xFFFFFFF triggers indefinite
   // light sleep (until any of the GPIO interrupts above is triggered)
@@ -454,8 +455,10 @@ void loop() {
   btnPressCount = btnPressCount % 4; // Keep count in the range 0 to 3 since we only have 4 states
 
     if (millis() > requestDueTime){  //once enough time has elapsed since the last request, we can send
-        getEpochTime(); // print Epoch time
-
+        //getEpochTime(); // print Epoch time
+        if(isPastBedTime(18,00)){//check if current time is past bedtime, go to sleep if it is
+          goToSleep();
+        } 
         if(local_upstream){
           updateSlackAPI();  // if the change happened locally, we send the new status to Slack
         } else {     
