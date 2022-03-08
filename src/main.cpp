@@ -11,6 +11,14 @@
 #include "Button.h"  // Use our own button module
 #include "Led.h" // Use our own LED module 
 
+//#if MODE_WPA2_EAP
+  extern "C" {
+  #include "user_interface.h"
+  #include "wpa2_enterprise.h"
+  #include "c_types.h"
+  }
+//#endif
+
  // Define the pins & reading functions for the buttons from 'Button.h'
 #define BUTTON_1_PIN D6
 #define BUTTON_2_PIN D7
@@ -221,7 +229,7 @@ void displayProfile(SlackProfile profile)
 }
 
 void connect_WPA2_EAP(){
-  Serial.println("Using WPA2-EAP mode to connect to WiFi.")
+  Serial.println("Using WPA2-EAP mode to connect to WiFi.");
   WiFi.mode(WIFI_STA);
   Serial.begin(115200);
   delay(1000);
