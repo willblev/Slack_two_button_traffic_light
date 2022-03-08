@@ -6,6 +6,8 @@
 #include <ESP8266WebServer.h>
 #include <WiFiManager.h>          // https://github.com/tzapu/WiFiManager
 #include <ArduinoJson.h>          // https://github.com/bblanchon/ArduinoJson  version 6.x
+#include <NTPClient.h> 
+#include <WiFiUdp.h>
 #include "credentials.h" // import the Slack OAuth token from the other file
 #include "custom_values.h" // import the values from the other file
 #include "Button.h"  // Use our own button module
@@ -45,8 +47,11 @@ WiFiClientSecure client;
 // Initialize Aruino Slack API library
 ArduinoSlack slack(client, slackOAuthToken);
 
+// Initialize NTP service
+WiFiUDP ntpUDP;
+NTPClient timeClient(ntpUDP, NTPaddress, GMTOffsetSeconds, delayBetweenNTPRequests);
 
-unsigned long delayBetweenRequests = 30000; // Time between requests (1 minute)
+unsigned long delayBetweenRequests = 30000; // Time between slack requests in millis
 unsigned long requestDueTime;    
 
 
@@ -59,6 +64,65 @@ bool shouldSaveConfig = false;  //flag for saving data
 void saveConfigCallback () {
   Serial.println("Setting shouldSaveConfig = true");
   shouldSaveConfig = true;
+}
+
+void getFormattedTime(){
+  //print a formatted version of the current time
+  timeClient.update();
+  String formattedTime = timeClient.getFormattedTime();
+  DEBUG_SERIAL.println("Formatted Time: ");
+  DEBUG_SERIAL.println(formattedTime);  
+}
+
+int epochLastMidnight(){
+  // calculate the Epoch time at midnight of the current day, so we can calculate what future times will be
+  // eg 8PM today will be today's Epoch midnight plus 8*3600 seconds
+  timeClient.update();
+  int epochTime = timeClient.getEpochTime();
+  int hoursSinceMidnight = timeClient.getHours();
+  int minutesAfterHour = timeClient.getMinutes();
+  int secondsAfterMinute = timeClient.getSeconds();
+  int totalSecondsSinceMidnight = (hoursSinceMidnight*3600) + (minutesAfterHour*60) + secondsAfterMinute;
+  int epochAtLastMidnight = epochTime - totalSecondsSinceMidnight;
+  DEBUG_SERIAL.print("Hours since last midnight: ");
+  DEBUG_SERIAL.println(String(hoursSinceMidnight));  
+  DEBUG_SERIAL.print("Minutes since last hour: ");
+  DEBUG_SERIAL.println(String(minutesAfterHour));
+  DEBUG_SERIAL.print("seconds since last minute: ");
+  DEBUG_SERIAL.println(String(secondsAfterMinute));
+
+  DEBUG_SERIAL.print("Total Seconds since last midnight: ");
+  DEBUG_SERIAL.println(totalSecondsSinceMidnight);
+  DEBUG_SERIAL.print("Epoch Time at last midnight: ");
+  DEBUG_SERIAL.println(epochAtLastMidnight);
+
+  return(epochAtLastMidnight);  
+}
+
+int getEpochTime() {
+  timeClient.update();
+  int epochTime = timeClient.getEpochTime();
+  DEBUG_SERIAL.print("Epoch Time from NTP: ");
+  DEBUG_SERIAL.println(epochTime);
+  //epochLastMidnight(epochTime);
+  getFormattedTime();
+  return(epochTime);
+}
+
+int slackStatusUntilTime(int hours, int minutes){
+  // this function takes as input a 24h time split into hours and minutes
+  // e.g. 19:45 would be passed as secondsFromMidnightUntilTime(19,45)
+  // and it returns the epoch GMT 0 time that corresponds to the desired time
+  timeClient.update();
+  int epochAtDesiredTime = epochLastMidnight() + (hours*3600) + (minutes*60) - GMTOffsetSeconds;
+  // we need to remove the offset that we set before, otherwise we'll be off by N hours since Slack uses GMT 0 
+  DEBUG_SERIAL.print("The epoch GMT0 equivalent time for ");
+  DEBUG_SERIAL.print(hours);
+  DEBUG_SERIAL.print(":");
+  DEBUG_SERIAL.print(minutes);
+  DEBUG_SERIAL.print(" is: ");
+  DEBUG_SERIAL.println(epochAtDesiredTime);
+    return(epochAtDesiredTime);
 }
 
 void updateLEDs() {
@@ -116,7 +180,7 @@ void updateSlackAPI() { // if a change has been registered locally, but hasn't b
    switch(LEDstatus){  // depending on what color the LEDs currently are, change the Slack status to... 
     case 0: // off
     {
-      profile = slack.setCustomStatus(message0, emoji0);
+      profile = slack.setCustomStatus(message0, emoji0, timeout0);
       delay(50);
       slack.setPresence(SLACK_PRESENCE_AWAY);
       break;
@@ -124,7 +188,7 @@ void updateSlackAPI() { // if a change has been registered locally, but hasn't b
     
     case 1: // green
     {
-      profile = slack.setCustomStatus(message1, emoji1);
+      profile = slack.setCustomStatus(message1, emoji1, slackStatusUntilTime(18,00));
       delay(50);
       slack.setPresence(SLACK_PRESENCE_AUTO);
       break;
@@ -132,7 +196,7 @@ void updateSlackAPI() { // if a change has been registered locally, but hasn't b
 
     case 2: // yellow
     { 
-      profile = slack.setCustomStatus(message2, emoji2);
+      profile = slack.setCustomStatus(message2, emoji2, slackStatusUntilTime(18,00));
       delay(50);
       slack.setPresence(SLACK_PRESENCE_AUTO);
       break;
@@ -140,7 +204,7 @@ void updateSlackAPI() { // if a change has been registered locally, but hasn't b
     
     case 3: //red
     {
-      profile = slack.setCustomStatus(message3, emoji3);
+      profile = slack.setCustomStatus(message3, emoji3, timeout3 + slackStatusUntilTime(18,00));
       delay(50);
       slack.setPresence(SLACK_PRESENCE_AUTO);
       break;
@@ -220,8 +284,12 @@ void displayProfile(SlackProfile profile)
     }
 }
 
+
+
+
+
 void setup() {                                           
-   DEBUG_SERIAL.println("Startintg setup");
+   DEBUG_SERIAL.println("Starting setup");
    traffic_light.yellow(); // turn on yellow light to signal start of setup loop
 
    Serial.begin(115200); // open the serial port at 115200 bps
@@ -301,6 +369,11 @@ void setup() {
     client.setFingerprint(SLACK_FINGERPRINT);
     DEBUG_SERIAL.println("Set Slack fingerprint");
 
+    // Start and configure NTP service
+    timeClient.begin();
+    //timeClient.setTimeOffset(GMTOffsetSeconds);
+
+
     // flash green light to signal end of setup loop
     traffic_light.green(); 
     traffic_light.off();
@@ -334,6 +407,8 @@ void loop() {
   btnPressCount = btnPressCount % 4; // Keep count in the range 0 to 3 since we only have 4 states
 
     if (millis() > requestDueTime){  //once enough time has elapsed since the last request, we can send
+        getEpochTime(); // print Epoch time
+
         if(local_upstream){
           updateSlackAPI();  // if the change happened locally, we send the new status to Slack
         } else {     
