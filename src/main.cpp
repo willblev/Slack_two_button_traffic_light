@@ -13,6 +13,9 @@
 #include "Button.h"  // Use our own button module
 #include "Led.h" // Use our own LED module 
 
+// include required for LIGHT_SLEEP_T, among others (from https://kevinstadler.github.io/notes/esp8266-deep-sleep-light-sleep-arduino/#determining-the-reason-for-waking)
+#include "user_interface.h"
+
  // Define the pins & reading functions for the buttons from 'Button.h'
 #define BUTTON_1_PIN D6
 #define BUTTON_2_PIN D7
@@ -88,6 +91,8 @@ int epochLastMidnight(){
   DEBUG_SERIAL.print("Epoch Time at last midnight: ");
   DEBUG_SERIAL.println(epochAtLastMidnight);
 
+
+
   return(epochAtLastMidnight);  
 }
 
@@ -113,6 +118,34 @@ int slackStatusUntilTime(int hours, int minutes){
   DEBUG_SERIAL.print(" is: ");
   DEBUG_SERIAL.println(epochAtDesiredTime);
     return(epochAtDesiredTime);
+}
+
+bool isPastBedTime(int hours, int minutes){
+    DEBUG_SERIAL.println("Checking if current time is past bed time...");
+  // this function takes as input a 24h time split into hours and minutes
+  // e.g. 19:45 would be passed as isPastBedTime(19,45)
+  // and it returns true or false depending on if the current time is past the bed time
+  timeClient.update();
+  int hoursSinceMidnight = timeClient.getHours();
+  int minutesAfterHour = timeClient.getMinutes();
+  DEBUG_SERIAL.print("The current time is ");
+  DEBUG_SERIAL.print(hoursSinceMidnight);
+  DEBUG_SERIAL.print(":");
+  DEBUG_SERIAL.print(minutesAfterHour);
+  DEBUG_SERIAL.print("and our bed time is ");
+  DEBUG_SERIAL.print(hours);
+  DEBUG_SERIAL.print(minutes);
+  DEBUG_SERIAL.println("");
+  
+
+  if (hoursSinceMidnight <= hours && minutesAfterHour <= minutes){ // if the current time is not past the bed time, we return false
+    return(false);
+      DEBUG_SERIAL.println("No, it's not past our bed time (false)");
+
+  }
+
+    return(true);
+      DEBUG_SERIAL.println("Yes, it is past our bed time (true)");
 }
 
 void updateLEDs() {
@@ -274,8 +307,25 @@ void displayProfile(SlackProfile profile)
     }
 }
 
+void goToSleep(){
+  // actually enter light sleep:
+  // the special timeout value of 0xFFFFFFF triggers indefinite
+  // light sleep (until any of the GPIO interrupts above is triggered)
+  wifi_fpm_do_sleep(0xFFFFFFF);  
+  // the CPU will only enter light sleep on the next idle cycle, which
+  // can be triggered by a short delay()
+  delay(10);
+}
 
-
+void dozeAgain(){
+  // if the ESP wakes up from light sleep, this function is invoked and checks if it should go back to sleep or not
+   if(button1.isPressed() || button2.isPressed()){  
+     // if a button was pressed, we stay awake
+     return;
+     } else {
+       goToSleep();
+     }
+}
 
 
 void setup() {                                           
@@ -285,7 +335,6 @@ void setup() {
    Serial.begin(115200); // open the serial port at 115200 bps
    delay(400);
    DEBUG_SERIAL.println("\nInitialized Serial connection at 115200 bps");
-   
    
   DEBUG_SERIAL.println("Mounting FS...");
   if (SPIFFS.begin()) {
@@ -362,7 +411,15 @@ void setup() {
     // Start and configure NTP service
     timeClient.begin();
     //timeClient.setTimeOffset(GMTOffsetSeconds);
-
+    
+    // enable light sleep  (following https://kevinstadler.github.io/notes/esp8266-deep-sleep-light-sleep-arduino/#determining-the-reason-for-waking)
+    wifi_fpm_set_sleep_type(LIGHT_SLEEP_T);
+    wifi_fpm_open();
+    // register one or more wake-up interrupts
+    gpio_pin_wakeup_enable(BUTTON_1_PIN, GPIO_PIN_INTR_LOLEVEL);
+    gpio_pin_wakeup_enable(BUTTON_2_PIN, GPIO_PIN_INTR_LOLEVEL);
+    // we can register a callback function which checks if we should go back to sleep or continue
+    wifi_fpm_set_wakeup_cb(dozeAgain);
 
     // flash green light to signal end of setup loop
     traffic_light.green(); 
