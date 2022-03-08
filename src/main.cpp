@@ -220,6 +220,53 @@ void displayProfile(SlackProfile profile)
     }
 }
 
+void connect_WPA2_EAP(){
+  Serial.println("Using WPA2-EAP mode to connect to WiFi.")
+  WiFi.mode(WIFI_STA);
+  Serial.begin(115200);
+  delay(1000);
+  Serial.setDebugOutput(true);
+  Serial.printf("SDK version: %s\n", system_get_sdk_version());
+  Serial.printf("Free Heap: %4d\n",ESP.getFreeHeap());
+  
+  // Setting ESP into STATION mode only (no AP mode or dual mode)
+  wifi_set_opmode(STATION_MODE);
+
+  struct station_config wifi_config;
+
+  memset(&wifi_config, 0, sizeof(wifi_config));
+  strcpy((char*)wifi_config.ssid, WPA2_EAP_ssid);
+  strcpy((char*)wifi_config.password, WPA2_EAP_password);
+
+  wifi_station_set_config(&wifi_config);
+  // uint8_t target_esp_mac[6] = {0x24, 0x0a, 0xc4, 0x9a, 0x58, 0x28};
+  // wifi_set_macaddr(STATION_IF,target_esp_mac);  // I don't think setting a custom mac address is necessary, we will remove later
+
+  wifi_station_set_wpa2_enterprise_auth(1);
+
+  // Clean up to be sure no old data is still inside
+  wifi_station_clear_cert_key();
+  wifi_station_clear_enterprise_ca_cert();
+  wifi_station_clear_enterprise_identity();
+  wifi_station_clear_enterprise_username();
+  wifi_station_clear_enterprise_password();
+  wifi_station_clear_enterprise_new_password();
+  
+  wifi_station_set_enterprise_identity((uint8*)WPA2_EAP_identity, strlen(WPA2_EAP_identity));
+  wifi_station_set_enterprise_username((uint8*)WPA2_EAP_username, strlen(WPA2_EAP_username));
+  wifi_station_set_enterprise_password((uint8*)WPA2_EAP_password, strlen((char*)WPA2_EAP_password));
+
+  
+  wifi_station_connect();
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(1000);
+    Serial.print(".");
+  }
+  Serial.println("WiFi connected");
+  Serial.println("IP address: ");
+  Serial.println(WiFi.localIP());
+}
+
 void setup() {                                           
    DEBUG_SERIAL.println("Startintg setup");
    traffic_light.yellow(); // turn on yellow light to signal start of setup loop
@@ -269,8 +316,12 @@ void setup() {
         
     wifiManager.setTimeout(120); //sets timeout (in seconds) until configuration portal gets turned off
   
-    wifiManager.autoConnect();
     
+    if (MODE_WPA2_EAP){
+      connect_WPA2_EAP();
+    } else {
+      wifiManager.autoConnect();
+    }
     // if you get here you have connected to the WiFi
     Serial.println("Connected to WiFi!");
     

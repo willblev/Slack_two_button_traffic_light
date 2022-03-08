@@ -1,6 +1,10 @@
 #ifndef custom_values_h
 #define custom_values_h
 
+
+bool MODE_WPA2_EAP = true; // if this is set to true, we will change the way we establish the WiFi connection
+
+
 enum state {OFF, GREEN,YELLOW,RED};
 int btnPressCount = 0;
 int btnState = LOW;
