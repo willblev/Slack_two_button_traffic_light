@@ -66,14 +66,6 @@ void saveConfigCallback () {
   shouldSaveConfig = true;
 }
 
-void getFormattedTime(){
-  //print a formatted version of the current time
-  timeClient.update();
-  String formattedTime = timeClient.getFormattedTime();
-  DEBUG_SERIAL.println("Formatted Time: ");
-  DEBUG_SERIAL.println(formattedTime);  
-}
-
 int epochLastMidnight(){
   // calculate the Epoch time at midnight of the current day, so we can calculate what future times will be
   // eg 8PM today will be today's Epoch midnight plus 8*3600 seconds
@@ -104,8 +96,6 @@ int getEpochTime() {
   int epochTime = timeClient.getEpochTime();
   DEBUG_SERIAL.print("Epoch Time from NTP: ");
   DEBUG_SERIAL.println(epochTime);
-  //epochLastMidnight(epochTime);
-  getFormattedTime();
   return(epochTime);
 }
 
@@ -180,7 +170,7 @@ void updateSlackAPI() { // if a change has been registered locally, but hasn't b
    switch(LEDstatus){  // depending on what color the LEDs currently are, change the Slack status to... 
     case 0: // off
     {
-      profile = slack.setCustomStatus(message0, emoji0, timeout0);
+      profile = slack.setCustomStatus(message0, emoji0,  slackStatusUntilTime(19,00));
       delay(50);
       slack.setPresence(SLACK_PRESENCE_AWAY);
       break;
@@ -188,7 +178,7 @@ void updateSlackAPI() { // if a change has been registered locally, but hasn't b
     
     case 1: // green
     {
-      profile = slack.setCustomStatus(message1, emoji1, slackStatusUntilTime(18,00));
+      profile = slack.setCustomStatus(message1, emoji1, slackStatusUntilTime(19,00));
       delay(50);
       slack.setPresence(SLACK_PRESENCE_AUTO);
       break;
@@ -196,7 +186,7 @@ void updateSlackAPI() { // if a change has been registered locally, but hasn't b
 
     case 2: // yellow
     { 
-      profile = slack.setCustomStatus(message2, emoji2, slackStatusUntilTime(18,00));
+      profile = slack.setCustomStatus(message2, emoji2, slackStatusUntilTime(19,00));
       delay(50);
       slack.setPresence(SLACK_PRESENCE_AUTO);
       break;
@@ -204,7 +194,7 @@ void updateSlackAPI() { // if a change has been registered locally, but hasn't b
     
     case 3: //red
     {
-      profile = slack.setCustomStatus(message3, emoji3, timeout3 + slackStatusUntilTime(18,00));
+      profile = slack.setCustomStatus(message3, emoji3, slackStatusUntilTime(19,00));
       delay(50);
       slack.setPresence(SLACK_PRESENCE_AUTO);
       break;
